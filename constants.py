@@ -23,3 +23,5 @@ SHAPES = [
     [(0, 0), (1, 0), (1, 1)],
     [(0, 0)]
 ]
+
+STATE_GAME_OVER = "game_over"

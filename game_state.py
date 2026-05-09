@@ -7,6 +7,7 @@ from constants import (
     GRID_SIZE, MARGIN, CELL_SIZE,
     SHAPES, COLORS,
     SLOT_X_START, SLOT_SPACING, SLOT_Y,
+    STATE_GAME_OVER,
 )
 
 
@@ -20,6 +21,7 @@ class GameState:
         self.score = 0
         self.level = 1
         self.game_over = False
+        self.go_state = STATE_GAME_OVER
         self.spawn_blocks()
 
     def spawn_blocks(self):

@@ -2,6 +2,7 @@ import pygame
 
 from constants import (
     SCREEN_WIDTH, SCREEN_HEIGHT, MARGIN,
+    STATE_GAME_OVER,
     COLORS
 )
 
@@ -14,7 +15,7 @@ class Renderer:
         self.font_med = pygame.font.SysFont("Arial", 24)
         self.font_small = pygame.font.SysFont("Arial", 20, bold=True)
 
-    def draw_frame(self, state) -> list:
+    def draw_frame(self, state, plugin=None) -> list:
         self.screen.fill(COLORS["bg"])
         state.board.draw(self.screen)
         self._draw_score_bar(state)
@@ -25,7 +26,7 @@ class Renderer:
 
         rects = []
         if state.game_over:
-            rects = self._draw_game_over(state)
+            rects = self._draw_overlay(state, plugin)
 
         pygame.display.flip()
         return rects
@@ -57,16 +58,19 @@ class Renderer:
             (bar_x + bar_w - score_surf.get_width(), bar_y - 24)
         )
 
-    def _draw_game_over(self, state) -> list:
-        cx = SCREEN_WIDTH // 2
-
+    def _draw_overlay(self, state, plugin) -> list:
         overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
         overlay.fill((0, 0, 0, 180))
         self.screen.blit(overlay, (0, 0))
 
+        if plugin and state.go_state != STATE_GAME_OVER:
+            return plugin.draw_overlay(self.screen, state, self)
+
+        return self._draw_state_game_over(state)
+
+    def _draw_state_game_over(self, state) -> list:
+        cx = SCREEN_WIDTH // 2
         self._draw_centered(self.font_big, "Игра окончена!", (255, 80, 80), 260)
-        score_text = f"Счёт: {state.score}"
-        self._draw_centered(self.font_med, score_text, (200, 200, 200), 320)
 
         restart_btn = pygame.Rect(0, 0, 200, 50)
         restart_btn.center = (cx, 400)
@@ -75,6 +79,53 @@ class Renderer:
 
         return [restart_btn]
 
+    def draw_centered(self, font, text, color, y):
+        self._draw_centered(font, text, color, y)
+
     def _draw_centered(self, font, text, color, y):
         surf = font.render(text, True, color)
         self.screen.blit(surf, surf.get_rect(center=(SCREEN_WIDTH // 2, y)))
+
+    def wrap_text(self, text: str, font: pygame.font.Font, max_width: int) -> list:
+        return self._wrap_text(text, font, max_width)
+
+    def _wrap_text(self, text: str, font: pygame.font.Font, max_width: int) -> list:
+        words = text.split()
+        lines = []
+        current: list = []
+
+        for word in words:
+            test = " ".join(current + [word])
+            if font.size(test)[0] <= max_width:
+                current.append(word)
+            else:
+                if current:
+                    lines.append(" ".join(current))
+                current = [word]
+
+        if current:
+            lines.append(" ".join(current))
+
+        result = []
+        for line in lines:
+            if font.size(line)[0] <= max_width:
+                result.append(line)
+            else:
+                result.extend(self._force_wrap(line, font, max_width))
+
+        return result or [text]
+
+    def _force_wrap(self, text: str, font: pygame.font.Font, max_width: int) -> list:
+        lines = []
+        current = ""
+        for char in text:
+            test = current + char
+            if font.size(test)[0] <= max_width:
+                current = test
+            else:
+                if current:
+                    lines.append(current)
+                current = char
+        if current:
+            lines.append(current)
+        return lines
