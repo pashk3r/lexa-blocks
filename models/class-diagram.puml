@@ -1,14 +1,79 @@
 @startuml
-title Component Architecture - Lexa-Blocks
+title Class Diagram – Lexa-Blocks (draft)
 
-component "GameCore" as GC
-component "EduModule" as EM
-interface "IEduService" as IEdu
+interface IEduService {
+    + generateQuestion(): MathQuestion
+    + verifyAnswer(questionId: string, answer: int): bool
+}
 
-GC ..> IEdu
-EM ..|> IEdu
+class GameManager {
+    - field: Field
+    - scoreSystem: ScoreSystem
+    - saveCubes: int
+    - gameState: GameState
+    - eduService: IEduService
+    + placeFigure(figure: Figure, pos: Position): bool
+    + onNoMovesLeft()
+    + onMathAnswer(answer: int): void
+    + useSaveCube(cell: Position): bool
+    + restartGame()
+}
 
-cloud "Remote AI API" as Remote
-EM --> Remote : optionally calls
+enum GameState {
+    PLAYING
+    LOSS_MENU
+    WAITING_MATH_ANSWER
+}
 
+class Field {
+    - width: int  ' TODO: уточнить размер
+    - height: int
+    - grid: Cell[][]
+    + canPlace(figure: Figure, pos: Position): bool
+    + placeFigure(figure: Figure, pos: Position): void
+    + clearFullRowsAndColumns(): int   ' возвращает количество очищенных клеток
+    + reset()
+}
+
+class Cell {
+    - occupied: bool
+}
+
+class Figure {
+    - shape: List<Point>   ' относительные координаты
+    + rotate(): Figure
+}
+
+class ScoreSystem {
+    - currentScore: int
+    - currentLevel: int
+    + addPoints(points: int): int   ' возвращает новый уровень
+    + getProgress(): int   ' 0..100, как в аналитике
+    + reset()
+}
+
+class MathQuestion {
+    + id: string
+    + text: string
+    + correctAnswer: int
+}
+
+class LocalMathAI implements IEduService {
+    - minNumber: int
+    - maxNumber: int
+    + generateQuestion(): MathQuestion
+    + verifyAnswer(id, answer): bool
+}
+
+class RemoteMathAI implements IEduService {
+    - apiEndpoint: string
+    + generateQuestion(): MathQuestion
+    + verifyAnswer(id, answer): bool
+}
+
+GameManager --> IEduService
+GameManager *-- Field
+GameManager *-- ScoreSystem
+Field o-- Cell
+GameManager --> GameState
 @enduml
