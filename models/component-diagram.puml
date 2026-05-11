@@ -1,1 +1,14 @@
+@startuml
+title Component Architecture - Lexa-Blocks
 
+component "GameCore" as GC
+component "EduModule" as EM
+interface "IEduService" as IEdu
+
+GC ..> IEdu
+EM ..|> IEdu
+
+cloud "Remote AI API" as Remote
+EM --> Remote : optionally calls
+
+@enduml
