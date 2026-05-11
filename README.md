@@ -11,7 +11,7 @@
 |------|-----|----------|
 | `models/component-diagram.puml` | Компонентная | GameCore, EduModule, интерфейс IEduService |
 | `models/class-diagram.puml` | Классов | Основные классы и их связи |
-| `models/state-machine.puml` | Конечного автомата | Состояния игры |
+| `models/state-machine.puml` | Состояний | Состояния игры |
 
 ## Работа с диаграммами
 - Исходники — в `models/*.puml` (PlantUML).
