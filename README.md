@@ -4,7 +4,7 @@
 **Статус:** проектирование (ожидаю уточнений от аналитика по пунктам, отмеченным `TODO`)
 
 ## Артефакты аналитика
-- [Аналитический документ](https://github.com/pashk3r/lexa_blocks/blob/analysis/docs/analysis.md)) — SADT‑диаграммы, сравнение с аналогами.
+- [Аналитический документ](https://github.com/pashk3r/lexa_blocks/blob/analysis/docs/analysis.md) — SADT‑диаграммы, сравнение с аналогами.
 
 ## Диаграммы (UML)
 | Файл | Тип | Описание |
