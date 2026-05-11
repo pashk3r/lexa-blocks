@@ -74,7 +74,9 @@
 
 ### Контекстная диаграмма (A-0):
 
-<img src="screenshots/sadt_A0.png" width="600">
+<p align="center">
+  <img src="screenshots/sadt_A0.png" width="600">
+</p>
 
 *Вход, управление, механизм, выход системы целиком.*
 
@@ -93,7 +95,9 @@
 ---
 ### Декомпозиция — схема процессов (A0):
 
-<img src="screenshots/sadt_decomposition.png" width="600">
+<p align="center">
+  <img src="screenshots/sadt_decomposition.png" width="600">
+</p>
 
 *Основные процессы игры A1–A5 и их связи.*
 
