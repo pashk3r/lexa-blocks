@@ -15,7 +15,7 @@ class Renderer:
         self.font_med = pygame.font.SysFont("Arial", 24)
         self.font_small = pygame.font.SysFont("Arial", 20, bold=True)
 
-    def draw_frame(self, state, plugin=None) -> list:
+    def draw_frame(self, state, plugin=None) -> list[pygame.Rect]:
         self.screen.fill(COLORS["bg"])
         state.board.draw(self.screen)
         self._draw_score_bar(state)
@@ -58,7 +58,7 @@ class Renderer:
             (bar_x + bar_w - score_surf.get_width(), bar_y - 24)
         )
 
-    def _draw_overlay(self, state, plugin) -> list:
+    def _draw_overlay(self, state, plugin) -> list[pygame.Rect]:
         overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SRCALPHA)
         overlay.fill((0, 0, 0, 180))
         self.screen.blit(overlay, (0, 0))
@@ -68,7 +68,7 @@ class Renderer:
 
         return self._draw_state_game_over(state)
 
-    def _draw_state_game_over(self, state) -> list:
+    def _draw_state_game_over(self, state) -> list[pygame.Rect]:
         cx = SCREEN_WIDTH // 2
         self._draw_centered(self.font_big, "Игра окончена!", (255, 80, 80), 260)
 
@@ -86,13 +86,13 @@ class Renderer:
         surf = font.render(text, True, color)
         self.screen.blit(surf, surf.get_rect(center=(SCREEN_WIDTH // 2, y)))
 
-    def wrap_text(self, text: str, font: pygame.font.Font, max_width: int) -> list:
+    def wrap_text(self, text: str, font: pygame.font.Font, max_width: int) -> list[str]:
         return self._wrap_text(text, font, max_width)
 
-    def _wrap_text(self, text: str, font: pygame.font.Font, max_width: int) -> list:
+    def _wrap_text(self, text: str, font: pygame.font.Font, max_width: int) -> list[str]:
         words = text.split()
         lines = []
-        current: list = []
+        current: list[str] = []
 
         for word in words:
             test = " ".join(current + [word])
@@ -115,7 +115,7 @@ class Renderer:
 
         return result or [text]
 
-    def _force_wrap(self, text: str, font: pygame.font.Font, max_width: int) -> list:
+    def _force_wrap(self, text: str, font: pygame.font.Font, max_width: int) -> list[str]:
         lines = []
         current = ""
         for char in text:

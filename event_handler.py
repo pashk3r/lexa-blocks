@@ -4,7 +4,7 @@ from constants import STATE_GAME_OVER
 
 class EventHandler:
 
-    def process(self, events, state, option_rects: list, plugin=None):
+    def process(self, events, state, option_rects: list[pygame.Rect], plugin=None):
         for event in events:
             if event.type == pygame.QUIT:
                 pygame.quit()

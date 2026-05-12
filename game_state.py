@@ -7,7 +7,7 @@ from constants import (
     GRID_SIZE, MARGIN, CELL_SIZE,
     SHAPES, COLORS,
     SLOT_X_START, SLOT_SPACING, SLOT_Y,
-    STATE_GAME_OVER,
+    STATE_GAME_OVER
 )
 
 
@@ -22,12 +22,26 @@ class GameState:
         self.level = 1
         self.game_over = False
         self.go_state = STATE_GAME_OVER
+        self.question_text = ""
+        self.options: list[str] = []
+        self.correct_index = 0
+        self.selected_index: int | None = None
         self.spawn_blocks()
 
     def spawn_blocks(self):
         self.blocks_in_hand = [
             Block(
                 random.choice(SHAPES),
+                random.choice(COLORS["blocks"]),
+                (SLOT_X_START + i * SLOT_SPACING, SLOT_Y)
+            )
+            for i in range(3)
+        ]
+
+    def spawn_rescue_blocks(self):
+        self.blocks_in_hand = [
+            Block(
+                [(0, 0)],
                 random.choice(COLORS["blocks"]),
                 (SLOT_X_START + i * SLOT_SPACING, SLOT_Y)
             )
@@ -81,3 +95,14 @@ class GameState:
             for gy in range(GRID_SIZE)
             for gx in range(GRID_SIZE)
         )
+
+    def apply_question(self, question_text: str, options: list[str], correct_index: int):
+        self.question_text = question_text
+        self.options = options
+        self.correct_index = correct_index
+
+    def clear_question(self):
+        self.question_text = ""
+        self.options = []
+        self.correct_index = 0
+        self.selected_index = None

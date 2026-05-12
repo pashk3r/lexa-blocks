@@ -14,7 +14,7 @@ class Game:
         self.renderer = Renderer(self.screen)
         self.event_handler = EventHandler()
         self.plugin = plugin
-        self._rects: list = []
+        self._rects: list[pygame.Rect] = []
 
     def run(self):
         prev_game_over = False

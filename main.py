@@ -10,8 +10,10 @@ def main():
     if os.path.exists("lexa.jpg"):
         pygame.display.set_icon(pygame.image.load("lexa.jpg"))
 
-    Game().run()
+    from quiz_plugin import QuizPlugin
+    Game(plugin=QuizPlugin()).run()
 
 
 if __name__ == "__main__":
     main()
+
