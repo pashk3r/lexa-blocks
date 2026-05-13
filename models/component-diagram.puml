@@ -1,14 +1,36 @@
 @startuml
 title Component Architecture - Lexa-Blocks
 
-component "GameCore" as GC
-component "EduModule" as EM
-interface "IEduService" as IEdu
+component GameCore
+component EduModule
+interface IEduService
 
-GC ..> IEdu
-EM ..|> IEdu
+GameCore ..> IEduService : uses
+EduModule ..|> IEduService : implements
 
-cloud "Remote AI API" as Remote
-EM --> Remote : optionally calls
+cloud "Remote AI API" as RemoteAPI
+EduModule --> RemoteAPI : calls
+
+note left of GameCore
+    Игровая логика:
+    - поле 8×8
+    - 5 типов фигур
+    - очистка линий (10 очков/линия)
+    - очки, уровни (каждые 100 очков → уровень +1)
+    - спасательные кубы (без лимита)
+end note
+
+note right of EduModule
+    Генерация математических вопросов
+    через внешний API.
+    Возвращает: вопрос + 4 варианта (A,B,C,D).
+    Обрабатывает ошибки соединения.
+end note
+
+note top of IEduService
+    Контракт:
+    + generateQuestion(): Question
+    + verifyAnswer(id, option): bool
+end note
 
 @enduml
