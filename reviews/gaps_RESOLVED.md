@@ -33,3 +33,10 @@
 - Пробелы G1–G5, G8, G11 имеют высокий приоритет, так как без них невозможно завершить диаграмму классов (`class-diagram.puml`) и диаграммы последовательности (`sequence_*.puml`).
 - G6 и G7 влияют на `IEduService` и могут быть временно закрыты предположениями (например, использовать локальный генератор с числами 1–20).
 - Все пробелы должны быть закрыты до момента передачи дизайна в разработку (до слияния ветки `design` в `main`).
+
+## Статус на 13.05.2026
+
+Все пункты G1–G11 закрыты аналитиком. Предоставлены:
+- [`glossary.md`](https://github.com/pashk3r/lexa_blocks/blob/analysis/docs/glossary.md)
+- [`usecases.md`](https://github.com/pashk3r/lexa_blocks/blob/analysis/docs/usecases.md)
+- [`srs.md`](https://github.com/pashk3r/lexa_blocks/blob/analysis/docs/srs.md)
