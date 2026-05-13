@@ -1,0 +1,32 @@
+@startuml
+title Sequence: Использование спасательного куба
+
+actor "Игрок" as Player
+participant "GameManager" as GM
+participant "SaveCubesManager" as SC
+participant "Field" as F
+participant "ScoreSystem" as SS
+participant "UI" as UI
+
+Player -> UI: выбирает спасательный куб и ячейку
+UI -> GM: onUseSaveCube(position)
+GM -> SC: use()
+alt кубы есть (use() вернул true)
+    SC --> GM: true
+    GM -> F: canPlace(singleCubeFigure, position)
+    alt ячейка свободна
+        GM -> F: placeFigure(singleCubeFigure, position)
+        GM -> SS: addPointsForCubes(1)
+        GM -> F: clearFullRowsAndColumns()
+        F --> GM: linesCleared
+        alt linesCleared > 0
+            GM -> SS: addPointsForLines(linesCleared)
+        end
+        GM -> UI: обновить поле, очки, уровень, прогресс, счётчик кубов
+    else ячейка занята
+        GM -> UI: показать ошибку
+    end
+else кубов нет
+    GM -> UI: кнопка использования неактивна
+end
+@enduml
