@@ -1,34 +1,45 @@
 @startuml
-title State Machine – Lexa-Blocks
+title State Machine - Lexa-Blocks
 
 [*] --> PLAYING : Новая игра
 
 state PLAYING {
     [*] -> GameLoop
-    GameLoop : Игрок размещает фигуры\nПроверка заполненных линий\nНачисление очков
+    GameLoop : Игрок размещает фигуры\nИспользует кубы\nНачисление очков, уровни
 }
 
 PLAYING --> LOSS_MENU : Нет возможных ходов\n(после размещения фигуры)
 
 state LOSS_MENU {
-    [*] -> Options
-    Options : Показать кнопки\n"Restart" и "Math Question"
+    [*] -> ShowOptions
+    ShowOptions : Кнопки "Restart" и "Math Question"
 }
 
 LOSS_MENU --> PLAYING : Restart (сброс игры)
 LOSS_MENU --> WAITING_MATH_ANSWER : Math Question
 
 state WAITING_MATH_ANSWER {
-    [*] -> DisplayQuestion
-    DisplayQuestion : Показать математический вопрос\n(из EduModule)
-    DisplayQuestion --> WaitInput
-    WaitInput : Ожидание ответа игрока
-    WaitInput --> AnswerCorrect : Правильный ответ
-    WaitInput --> AnswerWrong : Неправильный ответ
+    [*] --> GeneratingQuestion
+    GeneratingQuestion --> DisplayQuestion : успешно
+    GeneratingQuestion --> RetryOrGiveUp : ошибка API
+    
+    state DisplayQuestion {
+        [*] -> Show
+        Show : Показать вопрос и варианты
+    }
+    
+    DisplayQuestion --> AnswerCorrect : правильный ответ
+    DisplayQuestion --> AnswerWrong : неправильный ответ или "Сдаться"
+    
+    state RetryOrGiveUp {
+        [*] -> ErrorMsg
+        ErrorMsg : "Ошибка соединения. Повторить?"
+        ErrorMsg --> GeneratingQuestion : Повторить
+        ErrorMsg --> AnswerWrong : Сдаться
+    }
 }
 
-WAITING_MATH_ANSWER --> PLAYING : AnswerCorrect\n(добавить 3 спасательных куба, продолжить игру)
-WAITING_MATH_ANSWER --> PLAYING : AnswerWrong\n(полный сброс: очки=0, поле очищено, кубы=0)
+WAITING_MATH_ANSWER --> PLAYING : AnswerCorrect\n(добавить 3 куба, продолжить)
+WAITING_MATH_ANSWER --> PLAYING : AnswerWrong\n(полный сброс игры)
 
-' TODO: уточнить, есть ли таймаут на ответ, можно ли отказаться от вопроса и перезапуститься
 @enduml
