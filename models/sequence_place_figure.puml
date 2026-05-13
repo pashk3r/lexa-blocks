@@ -1,0 +1,42 @@
+@startuml
+title Sequence: Размещение фигуры и очистка линий
+
+actor "Игрок" as Player
+participant "GameManager" as GM
+participant "Field" as F
+participant "ScoreSystem" as SS
+participant "SaveCubesManager" as SC
+participant "FigureGenerator" as FG
+participant "UI" as UI
+
+Player -> UI: перетаскивает фигуру на поле
+UI -> GM: onFigurePlaced(figure, position)
+GM -> F: canPlace(figure, position)
+alt можно разместить
+    GM -> F: placeFigure(figure, position)
+    GM -> SS: addPointsForCubes(figure.getCubesCount())
+    note right: 1 очко за каждый куб
+    GM -> F: clearFullRowsAndColumns()
+    F --> GM: linesCleared (int)
+    alt linesCleared > 0
+        GM -> SS: addPointsForLines(linesCleared)
+        note right: 10 очков за линию
+    end
+    GM -> GM: обновить UI (очки, уровень, прогресс)
+    GM -> GM: удалить использованную фигуру из currentFigures
+    alt currentFigures пуст
+        GM -> FG: getRandomFigures(3)
+        FG --> GM: новый список фигур
+        GM -> UI: отобразить новые фигуры
+    end
+    GM -> GM: checkGameOver()
+    alt нет возможных ходов
+        GM -> GM: gameState = LOSS_MENU
+        GM -> UI: показать меню тупика
+    else ходы есть
+        GM -> UI: продолжить игру
+    end
+else нельзя разместить
+    GM -> UI: показать ошибку, фигура возвращается
+end
+@enduml
