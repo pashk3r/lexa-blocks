@@ -1,22 +1,26 @@
 @startuml
-title Class Diagram – Lexa-Blocks (draft)
+title Class Diagram - Lexa-Blocks (v1.0)
 
 interface IEduService {
     + generateQuestion(): MathQuestion
-    + verifyAnswer(questionId: string, answer: int): bool
+    + verifyAnswer(questionId: string, selectedOption: string): bool
 }
 
 class GameManager {
     - field: Field
     - scoreSystem: ScoreSystem
-    - saveCubes: int
+    - saveCubesManager: SaveCubesManager
+    - currentFigures: List<Figure>   ' 3 фигуры
     - gameState: GameState
     - eduService: IEduService
-    + placeFigure(figure: Figure, pos: Position): bool
+    + placeFigure(figure: Figure, position: Position): bool
     + onNoMovesLeft()
-    + onMathAnswer(answer: int): void
-    + useSaveCube(cell: Position): bool
+    + onMathHelpRequested()
+    + onAnswer(selectedOption: string)
+    + onSurrender()
+    + useSaveCube(position: Position): bool
     + restartGame()
+    + checkGameOver(): bool
 }
 
 enum GameState {
@@ -26,12 +30,12 @@ enum GameState {
 }
 
 class Field {
-    - width: int  ' TODO: уточнить размер
-    - height: int
+    - width: int = 8
+    - height: int = 8
     - grid: Cell[][]
     + canPlace(figure: Figure, pos: Position): bool
     + placeFigure(figure: Figure, pos: Position): void
-    + clearFullRowsAndColumns(): int   ' возвращает количество очищенных клеток
+    + clearFullRowsAndColumns(): int   ' возвращает количество очищенных линий
     + reset()
 }
 
@@ -40,40 +44,51 @@ class Cell {
 }
 
 class Figure {
-    - shape: List<Point>   ' относительные координаты
-    + rotate(): Figure
+    - shape: List<Point>   ' относительные координаты кубов
+    + getCubesCount(): int
+    + static getRandomFigures(count: int): List<Figure>
 }
 
 class ScoreSystem {
-    - currentScore: int
-    - currentLevel: int
-    + addPoints(points: int): int   ' возвращает новый уровень
-    + getProgress(): int   ' 0..100, как в аналитике
+    - totalScore: int
+    + addPointsForCubes(cubesCount: int)
+    + addPointsForLines(linesCount: int)
+    + getLevel(): int
+    + getProgress(): int   ' 0..99
     + reset()
 }
 
 class MathQuestion {
     + id: string
     + text: string
-    + correctAnswer: int
+    + options: List<string>   ' 4 элемента: A, B, C, D
+    + correctOption: string   ' 'A'..'D'
 }
 
-class LocalMathAI implements IEduService {
-    - minNumber: int
-    - maxNumber: int
+class RemoteMathAPI implements IEduService {
+    - baseUrl: string
     + generateQuestion(): MathQuestion
-    + verifyAnswer(id, answer): bool
+    + verifyAnswer(questionId, selectedOption): bool
 }
 
-class RemoteMathAI implements IEduService {
-    - apiEndpoint: string
-    + generateQuestion(): MathQuestion
-    + verifyAnswer(id, answer): bool
+class SaveCubesManager {
+    - count: int
+    + add(amount: int)
+    + use(): bool
+    + getCount(): int
+    + reset()
 }
 
 GameManager --> IEduService
 GameManager *-- Field
 GameManager *-- ScoreSystem
-Field o-- Cell
+GameManager *-- SaveCubesManager
 GameManager --> GameState
+Field o-- Cell
+Figure <.. GameManager : uses
+RemoteMathAPI ..|> IEduService
+RemoteMathAPI --> MathQuestion : creates
+
+note top of ScoreSystem : Уровень = floor(totalScore/100)+1\nПрогресс = totalScore % 100
+note top of Field : Очистка строк и столбцов\n1 линия = 10 очков (но начисляет ScoreSystem)
 @enduml
