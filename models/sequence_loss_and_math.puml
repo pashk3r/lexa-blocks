@@ -1,0 +1,50 @@
+@startuml
+title Sequence: Спасение через математический вопрос (внешний API)
+
+actor "Игрок" as Player
+participant "GameManager" as GM
+participant "RemoteMathAPI" as API
+participant "SaveCubesManager" as SC
+participant "Field" as F
+participant "ScoreSystem" as SS
+participant "UI" as UI
+
+GM -> GM: gameState = LOSS_MENU
+UI -> GM: onMathHelpRequested()
+GM -> GM: gameState = WAITING_MATH_ANSWER
+
+loop пока не получен вопрос или не нажат "Сдаться"
+    GM -> API: generateQuestion()
+    alt успешный ответ
+        API --> GM: MathQuestion (id, text, options[4], correctOption)
+        GM -> UI: показать окно с вопросом и вариантами A/B/C/D
+        Player -> UI: выбирает вариант (или "Сдаться")
+        alt "Сдаться"
+            UI -> GM: onSurrender()
+            GM -> GM: fullReset()
+            note right: счёт=0, поле пусто, кубы=0, уровень=1
+            GM -> GM: gameState = PLAYING
+            GM -> UI: перезапустить игру
+        else выбран вариант
+            UI -> GM: onAnswer(selectedOption)
+            GM -> API: verifyAnswer(questionId, selectedOption)
+            alt ответ правильный
+                API --> GM: true
+                GM -> SC: add(3)
+                GM -> GM: gameState = PLAYING
+                GM -> UI: закрыть окно, обновить счётчик кубов
+            else ответ неправильный
+                API --> GM: false
+                GM -> GM: fullReset()
+                GM -> GM: gameState = PLAYING
+                GM -> UI: перезапустить игру
+            end
+        end
+    else ошибка соединения
+        API --> GM: error
+        GM -> UI: показать "Ошибка соединения. Повторить?" с кнопками
+        Player -> UI: "Повторить" -> продолжить цикл
+        Player -> UI: "Сдаться" -> GM.onSurrender() -> fullReset
+    end
+end
+@enduml
