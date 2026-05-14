@@ -1,6 +1,5 @@
 # Software Requirements Specification (SRS) — Lexa-Blocks
 
-**Версия:** 1.0  
 **Дата:** 13-05-2026  
 **Ответственный бизнес-аналитик:** [zrqze](https://github.com/zrqze)
 
