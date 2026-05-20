@@ -1,32 +1,22 @@
 @startuml
-title Sequence: Использование спасательного куба
+title Sequence Diagram - Use Save Cube (UC-5)
 
-actor "Игрок" as Player
-participant "GameManager" as GM
-participant "SaveCubesManager" as SC
-participant "Field" as F
-participant "ScoreSystem" as SS
-participant "UI" as UI
+actor "Player" as P
+participant "GameState" as GS
+participant "Board" as B
 
-Player -> UI: выбирает спасательный куб и ячейку
-UI -> GM: onUseSaveCube(position)
-GM -> SC: use()
-alt кубы есть (use() вернул true)
-    SC --> GM: true
-    GM -> F: canPlace(singleCubeFigure, position)
-    alt ячейка свободна
-        GM -> F: placeFigure(singleCubeFigure, position)
-        GM -> SS: addPointsForCubes(1)
-        GM -> F: clearFullRowsAndColumns()
-        F --> GM: linesCleared
-        alt linesCleared > 0
-            GM -> SS: addPointsForLines(linesCleared)
-        end
-        GM -> UI: обновить поле, очки, уровень, прогресс, счётчик кубов
-    else ячейка занята
-        GM -> UI: показать ошибку
+P -> GS : перетаскивает одиночный куб (1x1)
+GS -> B : can_place(block, gx, gy)
+alt ячейка свободна
+    GS -> B : place(block, gx, gy)
+    B --> GS : points (1 очко за куб + линии)
+    GS -> GS : _add_score(points)
+    GS -> GS : удалить куб из blocks_in_hand
+    alt blocks_in_hand пуст
+        GS -> GS : spawn_blocks() (обычные фигуры)
     end
-else кубов нет
-    GM -> UI: кнопка использования неактивна
+    GS -> GS : _is_game_over()
+else ячейка занята
+    GS -> GS : фигура возвращается в слот
 end
 @enduml
