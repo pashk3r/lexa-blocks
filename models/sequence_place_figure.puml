@@ -1,42 +1,32 @@
 @startuml
-title Sequence: Размещение фигуры и очистка линий
+title Диаграмма последовательности - Размещение фигуры (UC-1)
 
-actor "Игрок" as Player
-participant "GameManager" as GM
-participant "Field" as F
-participant "ScoreSystem" as SS
-participant "SaveCubesManager" as SC
-participant "FigureGenerator" as FG
-participant "UI" as UI
+actor "Игрок" as P
+participant "GameState" as GC
+participant "Board" as F
 
-Player -> UI: перетаскивает фигуру на поле
-UI -> GM: onFigurePlaced(figure, position)
-GM -> F: canPlace(figure, position)
-alt можно разместить
-    GM -> F: placeFigure(figure, position)
-    GM -> SS: addPointsForCubes(figure.getCubesCount())
-    note right: 1 очко за каждый куб
-    GM -> F: clearFullRowsAndColumns()
-    F --> GM: linesCleared (int)
-    alt linesCleared > 0
-        GM -> SS: addPointsForLines(linesCleared)
-        note right: 10 очков за линию
+P -> GC : перетаскивание фигуры на клетку
+GC -> GC : try_place_active_block() 'проверка и подготовка размещения
+GC -> F : can_place(block, gx, gy)
+
+alt can_place == True
+    GC -> F : place(block, gx, gy)
+    F -> F : _clear_lines()
+    F --> GC : начислено очков (кубы + линии)
+    GC -> GC : _add_score(points) 'добавить очки к счёту
+    GC -> GC : удалить блок из blocks_in_hand
+
+    alt набор пуст
+        GC -> GC : spawn_blocks() 'сгенерировать новый набор фигур
     end
-    GM -> GM: обновить UI (очки, уровень, прогресс)
-    GM -> GM: удалить использованную фигуру из currentFigures
-    alt currentFigures пуст
-        GM -> FG: getRandomFigures(3)
-        FG --> GM: новый список фигур
-        GM -> UI: отобразить новые фигуры
+
+    GC -> GC : _is_game_over() 'проверить наличие возможных ходов
+    alt ходов нет
+        GC -> GC : game_over = True
     end
-    GM -> GM: checkGameOver()
-    alt нет возможных ходов
-        GM -> GM: gameState = LOSS_MENU
-        GM -> UI: показать меню тупика
-    else ходы есть
-        GM -> UI: продолжить игру
-    end
-else нельзя разместить
-    GM -> UI: показать ошибку, фигура возвращается
+
+else can_place == False
+    GC -> GC : активный блок возвращается в слот
+    GC --> P : показать ошибку (опционально)
 end
 @enduml
