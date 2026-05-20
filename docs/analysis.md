@@ -16,6 +16,8 @@
   <img src="screenshots/block_blast_1.png" width="150">
   <img src="screenshots/block_blast_2.png" width="150">
   <img src="screenshots/block_blast_3.png" width="150">
+  <img src="screenshots/block_blast_4.png" width="150">
+  <img src="screenshots/block_blast_5.png" width="150">
 </p>
 
 **Что хорошо:**
@@ -38,6 +40,8 @@
   <img src="screenshots/woodoku_1.png" width="150">
   <img src="screenshots/woodoku_2.png" width="150">
   <img src="screenshots/woodoku_3.png" width="150">
+  <img src="screenshots/woodoku_4.png" width="150">
+  <img src="screenshots/woodoku_5.png" width="150">
 </p>
 
 **Что хорошо:**
@@ -58,6 +62,7 @@
 <p align="center">
   <img src="screenshots/block_puzzle_jewel_1.png" width="150">
   <img src="screenshots/block_puzzle_jewel_2.png" width="150">
+  <img src="screenshots/block_puzzle_jewel_3.png" width="150">
 </p>
 
 **Что хорошо:**
