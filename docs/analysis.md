@@ -1,8 +1,8 @@
 # Lexa-Blocks — аналитическая часть проекта
 
-> **Цель документа:** обосновать актуальность игры, выбрать метод анализа (SADT), зафиксировать требования.
-> **Ответственный аналитик:** [zrqze](https://github.com/zrqze)
-> **Версия:** 3.0 (20.05.2026)
+**Цель документа:** обосновать актуальность игры, выбрать метод анализа (SADT), зафиксировать требования.
+**Ответственный аналитик:** [zrqze](https://github.com/zrqze)
+**Версия:** 3.0 (20.05.2026)
 
 ---
 
@@ -124,8 +124,8 @@
 
 *Основные процессы игры A1–A5 и их связи.*
 
-> **Связь с диаграммами проектировщика:**  
-> Процесс **A5** реализован в `QuizPlugin` (см. [диаграмму классов](https://github.com/pashk3r/lexa_blocks/blob/design/models/class-diagram.puml) и [state-machine]([https://github.com/pashk3r/lexa_blocks/blob/design/models/state-machine.puml)).
+**Связь с диаграммами проектировщика:**  
+Процесс **A5** реализован в `QuizPlugin` (см. [диаграмму классов](https://github.com/pashk3r/lexa_blocks/blob/design/models/class-diagram.puml) и [state-machine](https://github.com/pashk3r/lexa_blocks/blob/design/models/state-machine.puml)).
 
 ---
 
