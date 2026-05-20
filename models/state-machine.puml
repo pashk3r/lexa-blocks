@@ -1,45 +1,47 @@
 @startuml
-title State Machine - Lexa-Blocks
+title State Machine - Lexa Blocks
 
-[*] --> PLAYING : Новая игра
+[*] --> STATE_GAME_OVER : игра запущена
 
-state PLAYING {
-    [*] -> GameLoop
-    GameLoop : Игрок размещает фигуры\nИспользует кубы\nНачисление очков, уровни
+STATE_GAME_OVER --> STATE_CHOICE : on_game_over()
+
+state STATE_CHOICE {
+    [*] --> ShowChoice
+    ShowChoice : кнопки "Начать заново" и "Ответить на вопрос"
 }
 
-PLAYING --> LOSS_MENU : Нет возможных ходов\n(после размещения фигуры)
+STATE_CHOICE --> STATE_GAME_OVER : нажата "Начать заново" → restart
+STATE_CHOICE --> STATE_LOADING : нажата "Ответить на вопрос"
 
-state LOSS_MENU {
-    [*] -> ShowOptions
-    ShowOptions : Кнопки "Restart" и "Math Question"
+state STATE_LOADING {
+    [*] --> WaitAPI
+    WaitAPI : запрос к DeepSeek API (fetch_question)
 }
 
-LOSS_MENU --> PLAYING : Restart (сброс игры)
-LOSS_MENU --> WAITING_MATH_ANSWER : Math Question
+STATE_LOADING --> STATE_QUESTION : успешный ответ API
+STATE_LOADING --> STATE_QUESTION : ошибка API
 
-state WAITING_MATH_ANSWER {
-    [*] --> GeneratingQuestion
-    GeneratingQuestion --> DisplayQuestion : успешно
-    GeneratingQuestion --> RetryOrGiveUp : ошибка API
-    
-    state DisplayQuestion {
-        [*] -> Show
-        Show : Показать вопрос и варианты
-    }
-    
-    DisplayQuestion --> AnswerCorrect : правильный ответ
-    DisplayQuestion --> AnswerWrong : неправильный ответ или "Сдаться"
-    
-    state RetryOrGiveUp {
-        [*] -> ErrorMsg
-        ErrorMsg : "Ошибка соединения. Повторить?"
-        ErrorMsg --> GeneratingQuestion : Повторить
-        ErrorMsg --> AnswerWrong : Сдаться
-    }
+state STATE_QUESTION {
+    [*] --> DisplayQuestion
+    DisplayQuestion : показать вопрос и 4 варианта
+    DisplayQuestion --> AnswerGiven : игрок выбирает вариант
 }
 
-WAITING_MATH_ANSWER --> PLAYING : AnswerCorrect\n(добавить 3 куба, продолжить)
-WAITING_MATH_ANSWER --> PLAYING : AnswerWrong\n(полный сброс игры)
+STATE_QUESTION --> STATE_RESULT_OK : правильный вариант
+STATE_QUESTION --> STATE_RESULT_FAIL : неправильный вариант
+
+state STATE_RESULT_OK {
+    [*] --> WaitClick
+    WaitClick : "Правильно! Нажми, чтобы продолжить"
+}
+
+STATE_RESULT_OK --> STATE_GAME_OVER : клик → game_over=False, spawn_rescue_blocks()
+
+state STATE_RESULT_FAIL {
+    [*] --> WaitRestart
+    WaitRestart : "Неверно! Нажми, чтобы начать заново"
+}
+
+STATE_RESULT_FAIL --> [*] : клик → state.__init__()
 
 @enduml
