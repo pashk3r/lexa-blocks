@@ -1,94 +1,143 @@
 @startuml
-title Class Diagram - Lexa-Blocks (v1.0)
+title Class Diagram - Lexa Blocks(v2.0)
 
-interface IEduService {
-    + generateQuestion(): MathQuestion
-    + verifyAnswer(questionId: string, selectedOption: string): bool
+' ---------- Ядро игры ----------
+class Game {
+    - screen: pygame.Surface
+    - clock: pygame.time.Clock
+    - state: GameState
+    - renderer: Renderer
+    - event_handler: EventHandler
+    - plugin: BasePlugin
+    - _rects: list[Rect]
+    + run()
 }
 
-class GameManager {
-    - field: Field
-    - scoreSystem: ScoreSystem
-    - saveCubesManager: SaveCubesManager
-    - currentFigures: List<Figure>   ' 3 фигуры
-    - gameState: GameState
-    - eduService: IEduService
-    + placeFigure(figure: Figure, position: Position): bool
-    + onNoMovesLeft()
-    + onMathHelpRequested()
-    + onAnswer(selectedOption: string)
-    + onSurrender()
-    + useSaveCube(position: Position): bool
-    + restartGame()
-    + checkGameOver(): bool
+class GameState {
+    - board: Board
+    - blocks_in_hand: list[Block]
+    - active_block: Block
+    - drag_offset: Vector2
+    - score: int
+    - level: int
+    - game_over: bool
+    - go_state: str
+    - question_text: str
+    - options: list[str]
+    - correct_index: int
+    - selected_index: int
+    + spawn_blocks()
+    + spawn_rescue_blocks()
+    + try_place_active_block(): bool
+    + pick_block(point)
+    + drag_active_block(point)
+    - _add_score(points)
+    - _is_game_over(): bool
+    + apply_question(text, options, correct)
+    + clear_question()
 }
 
-enum GameState {
-    PLAYING
-    LOSS_MENU
-    WAITING_MATH_ANSWER
+class Board {
+    - grid: list[list[Color]]
+    + draw(surface)
+    + can_place(block, gx, gy): bool
+    + place(block, gx, gy): int
+    - _find_full_lines(): (rows, cols)
+    - _erase_lines(rows, cols)
+    - _clear_lines(): int
 }
 
-class Field {
-    - width: int = 8
-    - height: int = 8
-    - grid: Cell[][]
-    + canPlace(figure: Figure, pos: Position): bool
-    + placeFigure(figure: Figure, pos: Position): void
-    + clearFullRowsAndColumns(): int   ' возвращает количество очищенных линий
-    + reset()
+class Block {
+    - shape: list[tuple]
+    - color: Color
+    - original_slot_pos: Vector2
+    - pos: Vector2
+    - is_placed: bool
+    + draw(surface, scale)
+    + collide_point(point): bool
 }
 
-class Cell {
-    - occupied: bool
+class Renderer {
+    - screen: pygame.Surface
+    - font_big, font_med, font_small: Font
+    + draw_frame(state, plugin): list[Rect]
+    + draw_centered(font, text, color, y)
+    + wrap_text(text, font, max_width): list[str]
+    - _draw_score_bar(state)
+    - _draw_overlay(state, plugin): list[Rect]
+    - _draw_state_game_over(state): list[Rect]
+    - _draw_centered(...)
+    - _wrap_text(...)
+    - _force_wrap(...)
 }
 
-class Figure {
-    - shape: List<Point>   ' относительные координаты кубов
-    + getCubesCount(): int
-    + static getRandomFigures(count: int): List<Figure>
+class EventHandler {
+    + process(events, state, option_rects, plugin)
+    - _handle_game(event, state)
+    - _handle_overlay(event, state, rects, plugin)
 }
 
-class ScoreSystem {
-    - totalScore: int
-    + addPointsForCubes(cubesCount: int)
-    + addPointsForLines(linesCount: int)
-    + getLevel(): int
-    + getProgress(): int   ' 0..99
-    + reset()
+' ---------- Плагин ----------
+class BasePlugin {
+    + on_game_over(state, renderer): bool
+    + on_restart(state)
+    + draw_overlay(screen, state, renderer): list[Rect]
+    + handle_click(pos, state, rects): bool
 }
 
-class MathQuestion {
-    + id: string
-    + text: string
-    + options: List<string>   ' 4 элемента: A, B, C, D
-    + correctOption: string   ' 'A'..'D'
+class QuizPlugin extends BasePlugin {
+    + on_game_over(state, renderer): bool
+    + on_restart(state)
+    + draw_overlay(screen, state, renderer): list[Rect]
+    + handle_click(pos, state, rects): bool
+    - _draw_choice(screen, state, renderer): list[Rect]
+    - _draw_loading(screen, state, renderer)
+    - _draw_question(screen, state, renderer): list[Rect]
+    - _draw_result_ok(screen, state, renderer)
+    - _draw_result_fail(screen, state, renderer)
+    - _handle_choice_click(pos, state, rects): bool
+    - _handle_question_click(pos, state, rects): bool
+    - _fetch(state)
+    - _on_success(state, question, options, correct)
+    - _on_error(state, error_msg)
 }
 
-class RemoteMathAPI implements IEduService {
-    - baseUrl: string
-    + generateQuestion(): MathQuestion
-    + verifyAnswer(questionId, selectedOption): bool
+' ---------- Модуль api_client (как класс со стереотипом) ----------
+class "api_client" <<module>> {
+    + {static} fetch_question_async(on_success, on_error)
+    + {static} make_error_question(error_msg): (str, list[str], int)
+    - {static} _fetch_question(on_success, on_error)
+    - {static} _make_request(): dict
+    - {static} _parse_response(data): (str, list[str], int)
 }
 
-class SaveCubesManager {
-    - count: int
-    + add(amount: int)
-    + use(): bool
-    + getCount(): int
-    + reset()
+' ---------- Константы состояний (для справки) ----------
+enum GameOverlayState {
+    STATE_GAME_OVER
+    STATE_CHOICE
+    STATE_LOADING
+    STATE_QUESTION
+    STATE_RESULT_OK
+    STATE_RESULT_FAIL
 }
 
-GameManager --> IEduService
-GameManager *-- Field
-GameManager *-- ScoreSystem
-GameManager *-- SaveCubesManager
-GameManager --> GameState
-Field o-- Cell
-Figure <.. GameManager : uses
-RemoteMathAPI ..|> IEduService
-RemoteMathAPI --> MathQuestion : creates
+' ---------- Связи ----------
+Game *-- GameState : composition
+Game *-- Renderer : composition
+Game *-- EventHandler : composition
+Game --> BasePlugin : aggregation (optional)
+GameState *-- Board : composition
+GameState o-- Block : aggregation (blocks_in_hand, active_block)
+QuizPlugin --> "api_client" : uses (вызывает функции)
+QuizPlugin ..> GameOverlayState : использует константы
 
-note top of ScoreSystem : Уровень = floor(totalScore/100)+1\nПрогресс = totalScore % 100
-note top of Field : Очистка строк и столбцов\n1 линия = 10 очков (но начисляет ScoreSystem)
+note bottom of QuizPlugin
+    Реализует логику спасения:
+    - выбор "Ответить на вопрос"
+    - загрузка вопроса через api_client
+    - отображение 4 вариантов
+    - правильный ответ → spawn_rescue_blocks()
+    - неправильный → полный сброс
+end note
+
 @enduml
