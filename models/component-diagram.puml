@@ -1,36 +1,38 @@
 @startuml
-title Component Architecture - Lexa-Blocks
+title Component Architecture - Lexa Blocks
 
-component GameCore
-component EduModule
-interface IEduService
+package "GameCore" {
+    component "Game" as GameComp
+    component "GameState" as GameStateComp
+    component "Board" as BoardComp
+    component "Block" as BlockComp
+    component "Renderer" as RendererComp
+    component "EventHandler" as EventHandlerComp
+}
 
-GameCore ..> IEduService : uses
-EduModule ..|> IEduService : implements
+package "QuizPlugin" {
+    component "QuizPlugin" as QuizPluginComp
+    component "BasePlugin" as BasePluginComp
+}
 
-cloud "Remote AI API" as RemoteAPI
-EduModule --> RemoteAPI : calls
+package "External API Client" {
+    component "api_client" as APIClient <<module>>
+}
 
-note left of GameCore
-    Игровая логика:
-    - поле 8×8
-    - 5 типов фигур
-    - очистка линий (10 очков/линия)
-    - очки, уровни (каждые 100 очков → уровень +1)
-    - спасательные кубы (без лимита)
-end note
+component "DeepSeek API" as DeepSeek <<external>>
 
-note right of EduModule
-    Генерация математических вопросов
-    через внешний API.
-    Возвращает: вопрос + 4 варианта (A,B,C,D).
-    Обрабатывает ошибки соединения.
-end note
+' Зависимости
+GameComp --> QuizPluginComp : uses
+QuizPluginComp --|> BasePluginComp : extends
+QuizPluginComp --> APIClient : calls
+APIClient --> DeepSeek : HTTP POST
 
-note top of IEduService
-    Контракт:
-    + generateQuestion(): Question
-    + verifyAnswer(id, option): bool
+note right of QuizPluginComp
+    Реализует логику спасения:
+    - перехватывает game_over
+    - загружает вопрос через API
+    - отображает варианты ответа
+    - выдаёт спасательные кубы
 end note
 
 @enduml
