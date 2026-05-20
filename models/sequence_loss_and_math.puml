@@ -1,50 +1,54 @@
 @startuml
-title Sequence: Спасение через математический вопрос (внешний API)
+title Sequence Diagram - Спасение через математический вопрос (UC-4)
 
-actor "Игрок" as Player
-participant "GameManager" as GM
-participant "RemoteMathAPI" as API
-participant "SaveCubesManager" as SC
-participant "Field" as F
-participant "ScoreSystem" as SS
-participant "UI" as UI
+actor "Player" as P
+participant "Game" as G
+participant "GameState" as GS
+participant "QuizPlugin" as QP
+participant "Api_client" as API
+participant "DeepSeek API" as DS
 
-GM -> GM: gameState = LOSS_MENU
-UI -> GM: onMathHelpRequested()
-GM -> GM: gameState = WAITING_MATH_ANSWER
+G -> GS : game_over = True
+G -> QP : on_game_over(state, renderer)
+QP -> GS : go_state = STATE_CHOICE
+GS -> P : отобразить кнопку "Ответить на вопрос"
 
-loop пока не получен вопрос или не нажат "Сдаться"
-    GM -> API: generateQuestion()
-    alt успешный ответ
-        API --> GM: MathQuestion (id, text, options[4], correctOption)
-        GM -> UI: показать окно с вопросом и вариантами A/B/C/D
-        Player -> UI: выбирает вариант (или "Сдаться")
-        alt "Сдаться"
-            UI -> GM: onSurrender()
-            GM -> GM: fullReset()
-            note right: счёт=0, поле пусто, кубы=0, уровень=1
-            GM -> GM: gameState = PLAYING
-            GM -> UI: перезапустить игру
-        else выбран вариант
-            UI -> GM: onAnswer(selectedOption)
-            GM -> API: verifyAnswer(questionId, selectedOption)
-            alt ответ правильный
-                API --> GM: true
-                GM -> SC: add(3)
-                GM -> GM: gameState = PLAYING
-                GM -> UI: закрыть окно, обновить счётчик кубов
-            else ответ неправильный
-                API --> GM: false
-                GM -> GM: fullReset()
-                GM -> GM: gameState = PLAYING
-                GM -> UI: перезапустить игру
-            end
-        end
-    else ошибка соединения
-        API --> GM: error
-        GM -> UI: показать "Ошибка соединения. Повторить?" с кнопками
-        Player -> UI: "Повторить" -> продолжить цикл
-        Player -> UI: "Сдаться" -> GM.onSurrender() -> fullReset
-    end
+P -> GS : клик на "Ответить на вопрос"
+GS -> QP : handle_click 
+QP -> GS : go_state = STATE_LOADING
+QP -> API : fetch_question_async(on_success, on_error)
+API -> DS : HTTP POST
+DS --> API : {question, options, correct}
+API --> QP : on_success(question, options, correct)
+QP -> GS : apply_question(text, options, correct)
+QP -> GS : go_state = STATE_QUESTION
+
+GS -> P : отобразить вопрос и 4 варианта
+P -> GS : выбор варианта (click)
+GS -> QP : handle_click
+QP -> QP : _handle_question_click
+alt правильный ответ
+    QP -> GS : go_state = STATE_RESULT_OK
+    GS -> P : "Правильно! Нажми, чтобы продолжить"
+    P -> GS : клик
+    GS -> QP : handle_click
+    QP -> GS : game_over = False
+    QP -> GS : spawn_rescue_blocks()
+    QP -> GS : clear_question()
+    QP -> GS : go_state = STATE_GAME_OVER
+else неправильный ответ
+    QP -> GS : go_state = STATE_RESULT_FAIL
+    GS -> P : "Неверно! Нажми, чтобы начать заново"
+    P -> GS : клик
+    GS -> QP : handle_click
+    QP -> GS : state.__init__() (полный сброс)
 end
+
+note right of API
+    При ошибке вызывается
+    on_error с сообщением,
+    затем make_error_question()
+    возвращает локальный вопрос
+    с опциями "Повторить/Сдаться"
+end note
 @enduml
