@@ -14,10 +14,10 @@
 Тестирование проводится на основе:
 - [SRS](https://github.com/pashk3r/lexa_blocks/blob/analysis/docs/srs.md) — требования G1 – G9
 - [Use Cases](https://github.com/pashk3r/lexa_blocks/blob/analysis/docs/usecases.md) — сценарии UC-1 – UC-5
-- [Диаграмма классов](/generated/class-diagram.png)
-- [Диаграмма состояний](/generated/state-machine-diagram.png)
-- Диаграммы последовательности: [Размещение фигуры (UC-1)](/generated/sequence_place_figure.png), [Спасение через математический вопрос (UC-4)](/generated/sequence_loss_and_math.png), [Использование спасательного куба (UC-5)](/generated/sequence_use_save_cube.png)
-- Кода из ветки [development](https://github.com/pashk3r/lexa_blocks/blob/development) 
+- [Диаграмма классов](https://github.com/pashk3r/lexa_blocks/blob/design/generated/class-diagram.png)
+- [Диаграмма состояний](https://github.com/pashk3r/lexa_blocks/blob/design/generated/state-machine-diagram.png)
+- Диаграммы последовательности: [Размещение фигуры (UC-1)](https://github.com/pashk3r/lexa_blocks/blob/design/generated/sequence_place_figure.png), [Спасение через математический вопрос (UC-4)](https://github.com/pashk3r/lexa_blocks/blob/design/generated/sequence_loss_and_math.png), [Использование спасательного куба (UC-5)](https://github.com/pashk3r/lexa_blocks/blob/design/generated/sequence_use_save_cube.png)
+- Кода из ветки [`development`](https://github.com/pashk3r/lexa_blocks/tree/development) 
 
 ---
 
