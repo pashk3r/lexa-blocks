@@ -14,7 +14,7 @@ _API_URL = "https://api.deepseek.com/v1/chat/completions"
 _SYSTEM_PROMPT = "Ты генератор математических задач. Отвечай только валидным JSON."
 
 _USER_PROMPT = (
-    "Придумай НОВУЮ математическую задачу. "
+    "Придумай НОВУЮ задачу связанную с python. "
     "Ответ СТРОГО в JSON:\n"
     '{"question": "вопрос", "options": ["A)", "B)", "C)", "D)"], "correct": 0}'
 )
