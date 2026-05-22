@@ -25,17 +25,19 @@ class EventHandler:
             state.drag_active_block(event.pos)
 
     def _handle_overlay(self, event, state, rects, plugin):
+        if event.type == pygame.KEYDOWN and plugin and hasattr(plugin, "handle_keydown"):
+            if plugin.handle_keydown(event, state):
+                return
+
         if event.type != pygame.MOUSEBUTTONDOWN:
             return
 
         if plugin and state.go_state != STATE_GAME_OVER:
-            handled = plugin.handle_click(event.pos, state, rects)
-            if handled:
+            if plugin.handle_click(event.pos, state, rects):
                 return
 
         if state.go_state == STATE_GAME_OVER and rects:
-            restart_btn = rects[0]
-            if restart_btn.collidepoint(event.pos):
+            if rects[0].collidepoint(event.pos):
                 state.__init__()
                 if plugin:
                     plugin.on_restart(state)

@@ -27,6 +27,16 @@ SHAPES = [
 STATE_GAME_OVER = "game_over"
 STATE_CHOICE = "choice"
 STATE_LOADING = "loading"
+
 STATE_QUESTION = "question"
+
+STATE_INPUT = "input"
+
+STATE_FIND_ERROR = "find_error"
+
 STATE_RESULT_OK = "result_ok"
 STATE_RESULT_FAIL = "result_fail"
+
+QUIZ_CHOICE = "choice"
+QUIZ_INPUT = "input"
+QUIZ_FIND_ERROR = "find_error"
