@@ -30,13 +30,15 @@ _PROMPT_INPUT = (
     '{"question": "вопрос", "answer": "ответ"}'
 )
 
-_PROMPT_FIND_ERROR = (
-    "Придумай короткий фрагмент Python-кода (4–6 строк) с пошаговым разбором того, что он делает. "
-    "В одной из строк кода намеренно допусти синтаксическую или логическую ошибку. "
-    "Каждый шаг — это одна строка кода или её объяснение. "
-    "Все описания на русском. "
+_PROMPT_MATCH = (
+    "Придумай задание на соответствие по теме Python. "
+    "Дай ровно 4 пары: термин → определение (или функция → что делает, метод → результат и т.п.). "
+    "Термины обозначь буквами a, b, c, d. Определения обозначь цифрами 1, 2, 3, 4. "
+    "Перемешай определения так чтобы правильный порядок НЕ был a1b2c3d4. "
     "Ответ СТРОГО в JSON:\n"
-    '{"steps": ["строка 1 кода или описание", "строка 2...", ...], "error_index": 2}'
+    '{"left": ["a) ...", "b) ...", "c) ...", "d) ..."], '
+    '"right": ["1) ...", "2) ...", "3) ...", "4) ..."], '
+    '"answer": "a3b1c4d2"}'
 )
 
 
@@ -71,11 +73,9 @@ def _fetch_question(quiz_type: str, on_success, on_error):
 def _make_request(quiz_type: str) -> dict:
     prompt_map = {
         "choice": _PROMPT_CHOICE,
-        "input": _PROMPT_INPUT,
-        "find_error": _PROMPT_FIND_ERROR,
+        "input":  _PROMPT_INPUT,
+        "match":  _PROMPT_MATCH,
     }
-    user_prompt = prompt_map[quiz_type]
-
     headers = {
         "Authorization": f"Bearer {_API_KEY}",
         "Content-Type": "application/json",
@@ -84,12 +84,11 @@ def _make_request(quiz_type: str) -> dict:
         "model": "deepseek-chat",
         "messages": [
             {"role": "system", "content": _SYSTEM_PROMPT},
-            {"role": "user", "content": user_prompt},
+            {"role": "user",   "content": prompt_map[quiz_type]},
         ],
         "temperature": 0.7,
         "max_tokens": 600,
     }
-
     response = requests.post(_API_URL, headers=headers, json=payload, timeout=30)
     response.raise_for_status()
     return response.json()
@@ -105,8 +104,8 @@ def _parse_response(quiz_type: str, data: dict):
             return parsed["question"], parsed["options"], int(parsed["correct"])
         case "input":
             return parsed["question"], str(parsed["answer"])
-        case "find_error":
-            return parsed["steps"], int(parsed["error_index"])
+        case "match":
+            return parsed["left"], parsed["right"], parsed["answer"]
 
 
 def make_error_question(error_msg: str, quiz_type: str = "choice"):
@@ -114,19 +113,14 @@ def make_error_question(error_msg: str, quiz_type: str = "choice"):
     match quiz_type:
         case "input":
             return "input", (
-                f"Ошибка загрузки ({tag}). Как называется функция, "
-                "возвращающая длину списка?",
+                f"Ошибка загрузки ({tag}). Как называется функция, возвращающая длину списка?",
                 "len"
             )
-        case "find_error":
-            steps = [
-                "nums = [1, 2, 3]",
-                "# Хотим напечатать каждый элемент",
-                f"for i in range(4):  # ошибка (тег {tag})",
-                "    print(nums[i])",
-            ]
-            return "find_error", (steps, 2)
+        case "match":
+            left  = ["a) list.append(x)", "b) list.pop()", "c) len(x)", "d) list.sort()"]
+            right = ["1) сортирует список", "2) длина объекта", "3) добавляет x в конец", "4) удаляет последний элемент"]
+            return "match", (left, right, "a3b4c2d1")
         case _:
             question = f"Ошибка загрузки ({tag}). Какой тип возвращает type([])?",
-            options = ["A) list", "B) dict", "C) tuple", "D) set"]
+            options  = ["A) list", "B) dict", "C) tuple", "D) set"]
             return "choice", (question, options, 0)

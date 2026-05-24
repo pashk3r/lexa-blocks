@@ -30,7 +30,9 @@ class Board:
 
     def place(self, block, gx, gy):
         for dx, dy in block.shape:
-            self.grid[gy + dy][gx + dx] = block.color
+            r, c = gy + dy, gx + dx
+            if not self.grid[r][c]:
+                self.grid[r][c] = block.color
         placed_points = len(block.shape)
         line_points = self._clear_lines()
         return placed_points + line_points
@@ -55,4 +57,4 @@ class Board:
         rows, cols = self._find_full_lines()
         self._erase_lines(rows, cols)
         lines = len(rows) + len(cols)
-        return lines * 10 * max(1, lines - 1)
+        return lines * 10

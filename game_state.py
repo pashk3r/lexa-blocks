@@ -28,8 +28,10 @@ class GameState:
         self.selected_index: int | None = None
         self.input_text = ""
         self.correct_answer = ""
-        self.error_steps: list[str] = []
-        self.error_step_index = 0
+        self.match_left: list[str] = []
+        self.match_right: list[str] = []
+        self.match_answer = ""
+        self.match_input = ""
         self.spawn_blocks()
 
     def spawn_blocks(self):
@@ -110,16 +112,23 @@ class GameState:
         self.correct_answer = str(correct_answer)
         self.input_text = ""
 
-    def apply_find_error_question(self, steps: list[str], error_index: int):
-        self.error_steps = steps
-        self.error_step_index = error_index
+    def apply_match_question(self, left: list[str], right: list[str], answer: str):
+        self.match_left = left
+        self.match_right = right
+        self.match_answer = answer
+        self.match_input = ""
+
+    def apply_question(self, question_text: str, options: list[str], correct_index: int):
+        self.apply_choice_question(question_text, options, correct_index)
 
     def clear_question(self):
         self.question_text = ""
         self.options = []
-        self.correct_index = 0
+        self.correct_index = None
         self.selected_index = None
         self.input_text = ""
         self.correct_answer = ""
-        self.error_steps = []
-        self.error_step_index = 0
+        self.match_left = []
+        self.match_right = []
+        self.match_answer = ""
+        self.match_input = ""
