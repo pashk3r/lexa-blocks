@@ -1,7 +1,5 @@
 # Test Plan — Lexa-Blocks
 
-**Версия:** 2.0  
-**Дата:** 21-05-2026  
 **Тестировщик:** [egorka000](https://github.com/egorka000)  
 **Ветка:** `testing`
 
@@ -9,15 +7,15 @@
 
 ## 1. Введение
 
-Данный документ определяет стратегию, цели, объём и подходы к тестированию игры **Lexa-Blocks** — блок-головоломки на Python/pygame с образовательным элементом (вопросы по высшей математике через DeepSeek API при проигрыше).
+Данный документ определяет стратегию, цели, объём и подходы к тестированию игры **Lexa-Blocks** — блок-головоломки на Python/pygame с образовательным элементом (вопросы по языку программирования Python через DeepSeek API при проигрыше).
 
 Тестирование проводится на основе:
-- [SRS](https://github.com/pashk3r/lexa_blocks/blob/analysis/docs/srs.md) — требования G1 – G9
-- [Use Cases](https://github.com/pashk3r/lexa_blocks/blob/analysis/docs/usecases.md) — сценарии UC-1 – UC-5
+- [SRS](https://github.com/pashk3r/lexa_blocks/blob/analysis/docs/srs.md) — требования G1–G9
+- [Use Cases](https://github.com/pashk3r/lexa_blocks/blob/analysis/docs/usecases.md) — UC-1–UC-5
 - [Диаграмма классов](https://github.com/pashk3r/lexa_blocks/blob/design/generated/class-diagram.png)
 - [Диаграмма состояний](https://github.com/pashk3r/lexa_blocks/blob/design/generated/state-machine-diagram.png)
-- Диаграммы последовательности: [Размещение фигуры (UC-1)](https://github.com/pashk3r/lexa_blocks/blob/design/generated/sequence_place_figure.png), [Спасение через математический вопрос (UC-4)](https://github.com/pashk3r/lexa_blocks/blob/design/generated/sequence_loss_and_math.png), [Использование спасательного куба (UC-5)](https://github.com/pashk3r/lexa_blocks/blob/design/generated/sequence_use_save_cube.png)
-- Кода из ветки [`development`](https://github.com/pashk3r/lexa_blocks/tree/development) 
+- Диаграммы последовательности: [UC-1](https://github.com/pashk3r/lexa_blocks/blob/design/generated/sequence_place_figure.png), [UC-4](https://github.com/pashk3r/lexa_blocks/blob/design/generated/sequence_loss_and_math.png), [UC-5](https://github.com/pashk3r/lexa_blocks/blob/design/generated/sequence_use_save_cube.png)
+- Кода из ветки [`development`](https://github.com/pashk3r/lexa_blocks/tree/development)
 
 ---
 
@@ -26,9 +24,9 @@
 | № | Цель |
 |---|------|
 | 1 | Проверить игровую механику: размещение фигур, очистка линий, начисление очков |
-| 2 | Проверить переходы между состояниями (`STATE_GAME_OVER` → `STATE_CHOICE` → `STATE_LOADING` → `STATE_QUESTION` → `STATE_RESULT_OK/FAIL`) |
-| 3 | Проверить работу `QuizPlugin`: запрос к DeepSeek API, проверка ответа, сброс/продолжение |
-| 4 | Проверить систему спасательных кубов (`spawn_rescue_blocks`) |
+| 2 | Проверить переходы между состояниями игры |
+| 3 | Проверить работу всех трёх типов вопросов: `choice`, `input`, `match` |
+| 4 | Проверить систему спасательных кубов |
 | 5 | Проверить граничные и негативные сценарии |
 | 6 | Зафиксировать расхождения реализации с требованиями SRS |
 
@@ -44,19 +42,23 @@
 - Очистка строк и столбцов (`_clear_lines`)
 - Система очков: 10 очков за линию + 1 очко за куб в фигуре (`_add_score`)
 - Уровни и прогресс (1 очко = 1%, каждые 100 = новый уровень)
-- Состояния: `STATE_GAME_OVER`, `STATE_CHOICE`, `STATE_LOADING`, `STATE_QUESTION`, `STATE_RESULT_OK`, `STATE_RESULT_FAIL`
+- Состояния: `STATE_GAME_OVER`, `STATE_CHOICE`, `STATE_LOADING`, `STATE_QUESTION`, `STATE_INPUT`, `STATE_MATCH`, `STATE_RESULT_OK`, `STATE_RESULT_FAIL`
 - Условие тупика (`_is_game_over`)
-- `QuizPlugin`: запрос к DeepSeek API через `api_client` (мокируется в тестах)
+- `QuizPlugin`: три типа вопросов через DeepSeek API (мокируется в тестах)
+- Тип `choice`: вопрос с 4 вариантами ответа A/B/C/D
+- Тип `input`: вопрос со свободным вводом текста
+- Тип `match`: задание на соответствие (4 пары)
+- Случайный тип вопроса (`rand_btn`)
 - Правильный ответ: `spawn_rescue_blocks` (+3 куба), игра продолжается
 - Неправильный ответ / «Начать заново»: полный сброс (`state.__init__()`)
-- Использование спасательного куба
-- Обработка ошибки API через `make_error_question` (задокументированное поведение)
+- Спасательные кубы
+- Обработка ошибки API через `make_error_question`
 
 ### Вне объёма (Out of Scope)
 
 - Тестирование самого DeepSeek API (внешняя зависимость, мокируется)
 - Визуальное/UI тестирование (`Renderer`, pygame-рендеринг)
-- Тестирование `EventHandler` (обработка событий мыши)
+- Тестирование `EventHandler` (обработка событий мыши и клавиатуры)
 - Нагрузочное и производительное тестирование
 
 ---
@@ -78,9 +80,9 @@
 ### Критерии начала (Entry Criteria)
 
 - [x] Код игры размещён в ветке `development`
-- [x] Все игровые модули реализованы: `game_state.py`, `board.py`, `quiz_plugin.py`, `api_client.py`
+- [x] Все модули реализованы: `game_state.py`, `board.py`, `quiz_plugin.py`, `api_client.py`
 - [x] SRS и Use Cases финализированы
-- [x] Диаграммы классов и последовательности получены от проектировщика 
+- [x] Диаграммы классов и последовательности получены от проектировщика
 
 ### Критерии завершения (Exit Criteria)
 
@@ -106,4 +108,4 @@
 |------|-----------|
 | DeepSeek API недоступен во время тестов | Мокировать `api_client.fetch_question_async` через `unittest.mock.patch` |
 | Реализация расходится с SRS | Зафиксировать как дефект в `test-report.md` |
-| Структура модулей отличается от диаграммы классов  | Тесты уточняются под реальный код после его получения |
+| Структура модулей отличается от диаграммы классов | Тесты уточняются под реальный код после его получения |
