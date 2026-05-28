@@ -1,9 +1,3 @@
-"""
-conftest.py — Фикстуры для тестов Lexa-Blocks
-Дата: 22-05-2026
-
-"""
-
 import sys
 import os
 import types
