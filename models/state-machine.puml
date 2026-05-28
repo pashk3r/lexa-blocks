@@ -7,41 +7,55 @@ STATE_GAME_OVER --> STATE_CHOICE : on_game_over()
 
 state STATE_CHOICE {
     [*] --> ShowChoice
-    ShowChoice : кнопки "Начать заново" и "Ответить на вопрос"
+    ShowChoice : кнопки "Начать заново",\n"Варианты", "Ввод ответа",\n"Соответствие", "Случайный"
 }
 
-STATE_CHOICE --> STATE_GAME_OVER : нажата "Начать заново" → restart
-STATE_CHOICE --> STATE_LOADING : нажата "Ответить на вопрос"
+STATE_CHOICE --> STATE_GAME_OVER : нажата "Начать заново"
+STATE_CHOICE --> STATE_LOADING : выбран любой тип вопроса
 
 state STATE_LOADING {
     [*] --> WaitAPI
-    WaitAPI : запрос к DeepSeek API (fetch_question)
+    WaitAPI : запрос к DeepSeek API\nс параметром quiz_type
 }
 
-STATE_LOADING --> STATE_QUESTION : успешный ответ API
-STATE_LOADING --> STATE_QUESTION : ошибка API
+STATE_LOADING --> STATE_QUESTION : API вернул тип choice
+STATE_LOADING --> STATE_INPUT : API вернул тип input
+STATE_LOADING --> STATE_MATCH : API вернул тип match
 
 state STATE_QUESTION {
     [*] --> DisplayQuestion
-    DisplayQuestion : показать вопрос и 4 варианта
+    DisplayQuestion : вопрос + 4 варианта
     DisplayQuestion --> AnswerGiven : игрок выбирает вариант
+}
+
+state STATE_INPUT {
+    [*] --> DisplayInput
+    DisplayInput : вопрос + поле ввода
+    DisplayInput --> TextEntered : ввод текста + подтверждение
+}
+
+state STATE_MATCH {
+    [*] --> DisplayMatch
+    DisplayMatch : два столбца (термины и определения)
+    DisplayMatch --> MatchEntered : ввод соответствия (a1b2c3d4) + подтверждение
 }
 
 STATE_QUESTION --> STATE_RESULT_OK : правильный вариант
 STATE_QUESTION --> STATE_RESULT_FAIL : неправильный вариант
+STATE_INPUT --> STATE_RESULT_OK : введён верный ответ
+STATE_INPUT --> STATE_RESULT_FAIL : введён неверный ответ
+STATE_MATCH --> STATE_RESULT_OK : правильное соответствие
+STATE_MATCH --> STATE_RESULT_FAIL : неправильное соответствие
 
 state STATE_RESULT_OK {
     [*] --> WaitClick
     WaitClick : "Правильно! Нажми, чтобы продолжить"
 }
-
-STATE_RESULT_OK --> STATE_GAME_OVER : клик → game_over=False, spawn_rescue_blocks()
+STATE_RESULT_OK --> STATE_GAME_OVER : клик → game_over=False, spawn_rescue_blocks() (добавляет кубы)
 
 state STATE_RESULT_FAIL {
     [*] --> WaitRestart
     WaitRestart : "Неверно! Нажми, чтобы начать заново"
 }
-
-STATE_RESULT_FAIL --> [*] : клик → state.__init__()
-
+STATE_RESULT_FAIL --> [*] : клик → полный сброс (state.__init__())
 @enduml
