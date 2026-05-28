@@ -5,50 +5,92 @@ actor "Player" as P
 participant "Game" as G
 participant "GameState" as GS
 participant "QuizPlugin" as QP
-participant "Api_client" as API
+participant "api_client" as API
 participant "DeepSeek API" as DS
 
 G -> GS : game_over = True
 G -> QP : on_game_over(state, renderer)
 QP -> GS : go_state = STATE_CHOICE
-GS -> P : отобразить кнопку "Ответить на вопрос"
+GS -> P : отобразить 4 кнопки (choice / input / match / random)
 
-P -> GS : клик на "Ответить на вопрос"
-GS -> QP : handle_click 
+P -> GS : нажатие на тип викторины (choice/input/match/random)
+GS -> QP : handle_click(pos, state, rects)
+QP -> QP : _handle_choice_click (выбор типа)
 QP -> GS : go_state = STATE_LOADING
-QP -> API : fetch_question_async(on_success, on_error)
-API -> DS : HTTP POST
-DS --> API : {question, options, correct}
-API --> QP : on_success(question, options, correct)
-QP -> GS : apply_question(text, options, correct)
-QP -> GS : go_state = STATE_QUESTION
+QP -> API : fetch_question_async(quiz_type, on_success, on_error)
 
-GS -> P : отобразить вопрос и 4 варианта
-P -> GS : выбор варианта (click)
-GS -> QP : handle_click
-QP -> QP : _handle_question_click
-alt правильный ответ
-    QP -> GS : go_state = STATE_RESULT_OK
+API -> DS : HTTP POST (соответствующий промпт)
+DS --> API : JSON
+API --> QP : on_success(quiz_type, result)
+
+alt quiz_type == "choice"
+    QP -> GS : apply_choice_question(question, options, correct)
+    QP -> GS : go_state = STATE_QUESTION
+    GS -> P : вопрос + 4 варианта
+    P -> GS : выбор варианта
+    GS -> QP : handle_click
+    QP -> QP : _handle_question_click
+    alt правильный
+        QP -> GS : go_state = STATE_RESULT_OK
+    else неправильный
+        QP -> GS : go_state = STATE_RESULT_FAIL
+    end
+
+else quiz_type == "input"
+    QP -> GS : apply_input_question(question, answer)
+    QP -> GS : go_state = STATE_INPUT
+    GS -> P : вопрос + поле ввода
+    loop ввод текста
+        P -> GS : клавиши
+        GS -> QP : handle_keydown
+        QP -> GS : обновить input_text
+    end
+    P -> GS : подтверждение (Enter / кнопка)
+    GS -> QP : handle_click / handle_keydown
+    QP -> QP : _check_input_answer
+    alt верно
+        QP -> GS : go_state = STATE_RESULT_OK
+    else
+        QP -> GS : go_state = STATE_RESULT_FAIL
+    end
+
+else quiz_type == "match"
+    QP -> GS : apply_match_question(left, right, answer)
+    QP -> GS : go_state = STATE_MATCH
+    GS -> P : два столбца (термины и определения) + поле ввода
+    loop ввод ответа (например, a1b2c3d4)
+        P -> GS : клавиши
+        GS -> QP : handle_keydown
+        QP -> GS : обновить match_input
+    end
+    P -> GS : подтверждение
+    GS -> QP : handle_click
+    QP -> QP : _handle_match_click
+    alt ответ верный
+        QP -> GS : go_state = STATE_RESULT_OK
+    else
+        QP -> GS : go_state = STATE_RESULT_FAIL
+    end
+end
+
+alt RESULT_OK
     GS -> P : "Правильно! Нажми, чтобы продолжить"
     P -> GS : клик
     GS -> QP : handle_click
     QP -> GS : game_over = False
-    QP -> GS : spawn_rescue_blocks()
+    QP -> GS : spawn_rescue_blocks()   ' добавляет 3 куба к уже имеющимся
     QP -> GS : clear_question()
     QP -> GS : go_state = STATE_GAME_OVER
-else неправильный ответ
-    QP -> GS : go_state = STATE_RESULT_FAIL
+else RESULT_FAIL
     GS -> P : "Неверно! Нажми, чтобы начать заново"
     P -> GS : клик
     GS -> QP : handle_click
-    QP -> GS : state.__init__() (полный сброс)
+    QP -> GS : state.__init__()   ' полный сброс
 end
 
 note right of API
-    При ошибке вызывается
-    on_error с сообщением,
-    затем make_error_question()
-    возвращает локальный вопрос
-    с опциями "Повторить/Сдаться"
+    При ошибке – on_error вызывает
+    make_error_question(quiz_type)
+    с локальным вопросом соответствующего типа.
 end note
 @enduml
