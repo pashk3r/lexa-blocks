@@ -1,5 +1,5 @@
 @startuml
-title Class Diagram - Lexa Blocks(v2.0)
+title Class Diagram - Lexa Blocks (v4.0 - with match)
 
 ' ---------- Ядро игры ----------
 class Game {
@@ -26,14 +26,23 @@ class GameState {
     - options: list[str]
     - correct_index: int
     - selected_index: int
+    - input_text: str
+    - correct_answer: str
+    - match_left: list[str]
+    - match_right: list[str]
+    - match_answer: str
+    - match_input: str
     + spawn_blocks()
-    + spawn_rescue_blocks()
+    + spawn_rescue_blocks()          ' теперь добавляет кубы к существующим, а не заменяет
     + try_place_active_block(): bool
     + pick_block(point)
     + drag_active_block(point)
     - _add_score(points)
     - _is_game_over(): bool
-    + apply_question(text, options, correct)
+    + apply_choice_question(text, options, correct)
+    + apply_input_question(text, answer)
+    + apply_match_question(left, right, answer)
+    + apply_question(text, options, correct)   ' deprecated, но оставлен для совместимости
     + clear_question()
 }
 
@@ -44,7 +53,7 @@ class Board {
     + place(block, gx, gy): int
     - _find_full_lines(): (rows, cols)
     - _erase_lines(rows, cols)
-    - _clear_lines(): int
+    - _clear_lines(): int            ' возвращает lines * 10 (правильная формула)
 }
 
 class Block {
@@ -83,6 +92,7 @@ class BasePlugin {
     + on_restart(state)
     + draw_overlay(screen, state, renderer): list[Rect]
     + handle_click(pos, state, rects): bool
+    + handle_keydown(event, state): bool   ' опционально
 }
 
 class QuizPlugin extends BasePlugin {
@@ -90,35 +100,51 @@ class QuizPlugin extends BasePlugin {
     + on_restart(state)
     + draw_overlay(screen, state, renderer): list[Rect]
     + handle_click(pos, state, rects): bool
+    + handle_keydown(event, state): bool
     - _draw_choice(screen, state, renderer): list[Rect]
     - _draw_loading(screen, state, renderer)
     - _draw_question(screen, state, renderer): list[Rect]
+    - _draw_input(screen, state, renderer): list[Rect]
+    - _draw_match(screen, state, renderer): list[Rect]
     - _draw_result_ok(screen, state, renderer)
     - _draw_result_fail(screen, state, renderer)
+    - _get_fail_hint(state): list[str]
     - _handle_choice_click(pos, state, rects): bool
     - _handle_question_click(pos, state, rects): bool
-    - _fetch(state)
-    - _on_success(state, question, options, correct)
-    - _on_error(state, error_msg)
+    - _handle_input_click(pos, state, rects): bool
+    - _handle_match_click(pos, state, rects): bool
+    - _handle_match_keydown(event, state): bool
+    - _check_input_answer(state)
+    - _fetch(state, quiz_type)
+    - _on_success(state, quiz_type, result)
+    - _on_error(state, error_msg, quiz_type)
 }
 
-' ---------- Модуль api_client (как класс со стереотипом) ----------
+' ---------- Модуль api_client ----------
 class "api_client" <<module>> {
-    + {static} fetch_question_async(on_success, on_error)
-    + {static} make_error_question(error_msg): (str, list[str], int)
-    - {static} _fetch_question(on_success, on_error)
-    - {static} _make_request(): dict
-    - {static} _parse_response(data): (str, list[str], int)
+    + {static} fetch_question_async(quiz_type, on_success, on_error)
+    + {static} make_error_question(error_msg, quiz_type): (str, any)
+    - {static} _fetch_question(quiz_type, on_success, on_error)
+    - {static} _make_request(quiz_type): dict
+    - {static} _parse_response(quiz_type, data): any
 }
 
-' ---------- Константы состояний (для справки) ----------
+' ---------- Перечисления (константы) ----------
 enum GameOverlayState {
     STATE_GAME_OVER
     STATE_CHOICE
     STATE_LOADING
     STATE_QUESTION
+    STATE_INPUT
+    STATE_MATCH
     STATE_RESULT_OK
     STATE_RESULT_FAIL
+}
+
+enum QuizType {
+    QUIZ_CHOICE
+    QUIZ_INPUT
+    QUIZ_MATCH
 }
 
 ' ---------- Связи ----------
@@ -127,17 +153,17 @@ Game *-- Renderer : composition
 Game *-- EventHandler : composition
 Game --> BasePlugin : aggregation (optional)
 GameState *-- Board : composition
-GameState o-- Block : aggregation (blocks_in_hand, active_block)
-QuizPlugin --> "api_client" : uses (вызывает функции)
-QuizPlugin ..> GameOverlayState : использует константы
+GameState o-- Block : aggregation
+QuizPlugin --> "api_client" : uses
+QuizPlugin ..> GameOverlayState : uses
+QuizPlugin ..> QuizType : uses
 
 note bottom of QuizPlugin
-    Реализует логику спасения:
-    - выбор "Ответить на вопрос"
-    - загрузка вопроса через api_client
-    - отображение 4 вариантов
-    - правильный ответ → spawn_rescue_blocks()
-    - неправильный → полный сброс
+    Три типа викторины:
+    - choice: выбор варианта
+    - input: ввод ответа
+    - match: установление соответствия (a1b2c3d4)
+    При успехе: добавляет 3 спасательных куба,
+    сохраняя уже имеющиеся.
 end note
-
 @enduml
