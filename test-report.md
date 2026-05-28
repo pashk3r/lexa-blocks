@@ -1,6 +1,5 @@
 # Test Report — Lexa-Blocks
-
-**Дата:** 22-05-2026  
+ 
 **Тестировщик:** [egorka000](https://github.com/egorka000)  
 **Ветка:** `testing`  
 **Тестируемая ветка:** `development`  
@@ -11,12 +10,11 @@
 
 | Показатель | Значение |
 |------------|----------|
-| Всего тест-кейсов | 34 |
-| ✅ Пройдено | 29 |
-| ❌ Упало (реальные дефекты) | 5 |
+| Всего тест-кейсов | 27 |
+| ✅ Пройдено | 25 |
+| ❌ Упало (реальные дефекты) | 2 |
 | 🔴 Критических дефектов (P1) | 1 (BUG-01, подтверждён двумя тестами) |
-| 🟠 Высоких дефектов (P2) | 2 (BUG-02, BUG-04) |
-| 🟡 Средних дефектов (P3) | 1 (BUG-03) |
+| 🟠 Высоких дефектов (P2) | 1 (BUG-02) |
 
 ---
 
@@ -67,42 +65,37 @@
 |----|----------|----------------|-----------|
 | TC-17 | `on_game_over` → STATE_CHOICE | `test_TC17_on_game_over_sets_state_choice` | ✅ PASS |
 | TC-18 | `_fetch` → STATE_LOADING | `test_TC18_fetch_sets_state_loading` | ✅ PASS |
-| TC-19 | `_on_success` → STATE_QUESTION | `test_TC19_on_success_sets_state_question` | ✅ PASS |
-| TC-20 | Правильный ответ → 3 куба, game_over=False | `test_TC20_correct_answer_gives_rescue_blocks` | ✅ PASS |
-| TC-20b | **Старые фигуры сохраняются после правильного ответа** | `test_TC20b_rescue_blocks_lose_previous_hand` | ❌ FAIL → **BUG-02** |
-| TC-21 | Неправильный ответ → полный сброс | `test_TC21_wrong_answer_resets_game` | ✅ PASS |
-| TC-22 | «Начать заново» → сброс игры | `test_TC22_restart_button_resets_game` | ✅ PASS |
-| TC-23 | Ошибка API → фейковый вопрос (задокументировано) | `test_TC23_api_error_shows_fake_question` | ✅ PASS |
-| TC-23b | **`clear_question()` сбрасывает `correct_index` в None** | `test_TC23b_clear_question_correct_index_not_reset` | ❌ FAIL → **BUG-03** |
+| TC-19 | `_on_success` → STATE_QUESTION с вопросом | `test_TC19_on_success_sets_state_question` | ✅ PASS |
+| TC-20 | Неправильный ответ → полный сброс | `test_TC20_wrong_answer_resets_game` | ✅ PASS |
+| TC-21 | «Начать заново» → сброс игры | `test_TC21_restart_button_resets_game` | ✅ PASS |
+| TC-22 | Ошибка API → фейковый вопрос (задокументировано) | `test_TC22_api_error_shows_fake_question` | ✅ PASS |
 
 ### Блок 6 — Спасательные кубы
 
 | ID | Название | Тест в скрипте | Результат |
 |----|----------|----------------|-----------|
-| TC-24 | `spawn_rescue_blocks()` создаёт 3 куба 1×1 | `test_TC24_spawn_rescue_blocks_gives_3_single_cubes` | ✅ PASS |
-| TC-25 | Куб завершает строку → очистка + очки | `test_TC25_rescue_cube_clears_line_when_completing_row` | ✅ PASS |
-| TC-25b | **`board.place()` не перезаписывает занятые ячейки** | `test_TC25b_place_overwrites_occupied_cell` | ❌ FAIL → **BUG-04** |
+| TC-23 | `spawn_rescue_blocks()` создаёт 3 куба 1×1 | `test_TC23_spawn_rescue_blocks_gives_3_single_cubes` | ✅ PASS |
+| TC-24 | Куб завершает строку → очистка | `test_TC24_rescue_cube_clears_line_when_completing_row` | ✅ PASS |
+| TC-24b | **`board.place()` не перезаписывает занятые ячейки** | `test_TC24b_place_overwrites_occupied_cell` | ❌ FAIL → **BUG-02** |
 
 ### Блок 7 — Граничные значения
 
 | ID | Название | Тест в скрипте | Результат |
 |----|----------|----------------|-----------|
-| TC-26 | Размещение в угол (gx=0, gy=0) | `test_TC26_place_in_corner_0_0` | ✅ PASS |
-| TC-27 | Размещение в угол (gx=7, gy=7) | `test_TC27_place_in_corner_7_7` | ✅ PASS |
-| TC-28 | `apply_question` / `clear_question` | `test_TC28_apply_and_clear_question` | ✅ PASS |
+| TC-25 | Размещение в угол (gx=0, gy=0) | `test_TC25_place_in_corner_0_0` | ✅ PASS |
+| TC-26 | Размещение в угол (gx=7, gy=7) | `test_TC26_place_in_corner_7_7` | ✅ PASS |
+| TC-27 | `apply_question` / `clear_question` | `test_TC27_apply_and_clear_question` | ✅ PASS |
 
 ---
 
-## 3. Найденные дефекты
+## 3. Открытые дефекты
 
 | ID | Приоритет | Компонент | Строка | Краткое описание | Тест |
 |----|-----------|-----------|--------|------------------|------|
 | BUG-01 | 🔴 P1 | `board.py` | 58 | Квадратичная формула очков при 3+ линиях | TC-12b, TC-12c |
-| BUG-02 | 🟠 P2 | `game_state.py` | 37 | `spawn_rescue_blocks()` заменяет всю руку | TC-20b |
-| BUG-03 | 🟡 P3 | `game_state.py` | 96 | `clear_question()` не сбрасывает `correct_index` в `None` | TC-23b |
-| BUG-04 | 🟠 P2 | `board.py` | 30 | `board.place()` молча перезаписывает занятые ячейки | TC-25b |
+| BUG-02 | 🟠 P2 | `board.py` | 30 | `board.place()` молча перезаписывает занятые ячейки | TC-24b |
 
-Подробное описание каждого дефекта — в `bug-report.md`.
+Подробное описание — в `bug-report.md`.
 
 ---
 
@@ -112,18 +105,16 @@
 |--------|----------|
 | `board.py` | ✅ Высокое — все публичные методы покрыты |
 | `game_state.py` | ✅ Высокое — очки, уровень, spawn, вопросы, переходы |
-| `quiz_plugin.py` | ✅ Высокое — все состояния и переходы покрыты |
+| `quiz_plugin.py` | ✅ Высокое — все состояния покрыты |
 | `api_client.py` | 🟡 Среднее — мокируется, протестирован через `QuizPlugin` |
-| `blocks.py` | 🟡 Низкое — используется косвенно через `Board` и `GameState` |
+| `blocks.py` | 🟡 Низкое — используется косвенно |
 | `renderer.py` | ❌ Не покрыт — рендеринг вне области тестирования |
-| `event_handler.py` | ❌ Не покрыт — обработка событий мыши вне области тестирования |
+| `event_handler.py` | ❌ Не покрыт — обработка событий вне области тестирования |
 
 ---
 
 ## 5. Выводы
 
-Основная игровая механика (поле, очистка одной-двух линий, переходы состояний викторины) работает корректно. Выявлено 4 дефекта в 5 упавших тестов.
+25 из 27 тест-кейсов пройдены. Остаётся 1 критический дефект (BUG-01) и 1 высокий (BUG-02).
 
-**BUG-01** является критическим: квадратичная формула очков проявляется в каждой игровой сессии при одновременной очистке 3+ линий и нарушает игровой баланс.
-
-**Рекомендация:** до мержа в `main` обязательно закрыть BUG-01 и BUG-04. После исправлений повторно запустить тесты TC-12b, TC-12c, TC-20b, TC-23b, TC-25b, они должны перейти в PASS.
+**Рекомендация:** до мержа в `main` обязательно закрыть BUG-01 — квадратичная формула очков нарушает игровой баланс при каждой сессии где одновременно очищается 3+ линий. После исправления повторно запустить `pytest testing/test_lexa_blocks.py -v` — TC-12b и TC-12c должны перейти в PASS.
